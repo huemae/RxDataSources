@@ -17,6 +17,7 @@ import Differentiator
 open class TableViewSectionedDataSource<Section: SectionModelType>
     : NSObject
     , UITableViewDataSource
+    , UITableViewDelegate
     , SectionedViewDataSourceType {
     
     public typealias Item = Section.Item
@@ -24,6 +25,8 @@ open class TableViewSectionedDataSource<Section: SectionModelType>
     public typealias ConfigureCell = (TableViewSectionedDataSource<Section>, UITableView, IndexPath, Item) -> UITableViewCell
     public typealias TitleForHeaderInSection = (TableViewSectionedDataSource<Section>, Int) -> String?
     public typealias TitleForFooterInSection = (TableViewSectionedDataSource<Section>, Int) -> String?
+    public typealias ViewForHeaderInSection = (TableViewSectionedDataSource<Section>, Int, Section) -> UIView?
+    public typealias HeightForHeaderInSection = (TableViewSectionedDataSource<Section>, Int, Section) -> CGFloat
     public typealias CanEditRowAtIndexPath = (TableViewSectionedDataSource<Section>, IndexPath) -> Bool
     public typealias CanMoveRowAtIndexPath = (TableViewSectionedDataSource<Section>, IndexPath) -> Bool
 
@@ -40,6 +43,8 @@ open class TableViewSectionedDataSource<Section: SectionModelType>
                 canEditRowAtIndexPath: @escaping CanEditRowAtIndexPath = { _, _ in false },
                 canMoveRowAtIndexPath: @escaping CanMoveRowAtIndexPath = { _, _ in false },
                 sectionIndexTitles: @escaping SectionIndexTitles = { _ in nil },
+                viewForHeaderInSection: @escaping ViewForHeaderInSection = { _,_,_   in nil },
+                heightForHeaderInSection: @escaping HeightForHeaderInSection = { _,_,_   in 0 },
                 sectionForSectionIndexTitle: @escaping SectionForSectionIndexTitle = { _, _, index in index }
             ) {
             self.configureCell = configureCell
@@ -49,6 +54,8 @@ open class TableViewSectionedDataSource<Section: SectionModelType>
             self.canMoveRowAtIndexPath = canMoveRowAtIndexPath
             self.sectionIndexTitles = sectionIndexTitles
             self.sectionForSectionIndexTitle = sectionForSectionIndexTitle
+            self.viewForHeaderInSection = viewForHeaderInSection
+            self.heightForHeaderInSection = heightForHeaderInSection
         }
     #else
         public init(
@@ -146,6 +153,23 @@ open class TableViewSectionedDataSource<Section: SectionModelType>
             #endif
         }
     }
+    
+    open var viewForHeaderInSection: ViewForHeaderInSection {
+        didSet {
+            #if DEBUG
+                ensureNotMutatedAfterBinding()
+            #endif
+        }
+    }
+    
+    open var heightForHeaderInSection: HeightForHeaderInSection {
+        didSet {
+            #if DEBUG
+                ensureNotMutatedAfterBinding()
+            #endif
+        }
+    }
+    
     open var canMoveRowAtIndexPath: CanMoveRowAtIndexPath {
         didSet {
             #if DEBUG
@@ -208,6 +232,18 @@ open class TableViewSectionedDataSource<Section: SectionModelType>
     open func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
         self._sectionModels.moveFromSourceIndexPath(sourceIndexPath, destinationIndexPath: destinationIndexPath)
     }
+    
+    public func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        precondition(section < _sectionModels.count)
+        
+        return self.viewForHeaderInSection(self, section, self[section])
+    }
+    
+    public func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        precondition(section < _sectionModels.count)
+        
+        return self.heightForHeaderInSection(self, section, self[section])
+    }		
 
     #if os(iOS)
     open func sectionIndexTitles(for tableView: UITableView) -> [String]? {

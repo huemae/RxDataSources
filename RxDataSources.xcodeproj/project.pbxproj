@@ -315,6 +315,7 @@
 				80FB1F5B228489FF009D6516 /* Frameworks */,
 			);
 			sourceTree = "<group>";
+			usesTabs = 0;
 		};
 		C8984C5B1C36AF35001E4272 /* Products */ = {
 			isa = PBXGroup;
