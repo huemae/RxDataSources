@@ -27,6 +27,7 @@ open class TableViewSectionedDataSource<Section: SectionModelType>
     public typealias TitleForFooterInSection = (TableViewSectionedDataSource<Section>, Int) -> String?
     public typealias ViewForHeaderInSection = (TableViewSectionedDataSource<Section>, Int, Section) -> UIView?
     public typealias HeightForHeaderInSection = (TableViewSectionedDataSource<Section>, Int, Section) -> CGFloat
+    public typealias HeightForRowAtIndexPath = (IndexPath, Item) -> CGFloat
     public typealias CanEditRowAtIndexPath = (TableViewSectionedDataSource<Section>, IndexPath) -> Bool
     public typealias CanMoveRowAtIndexPath = (TableViewSectionedDataSource<Section>, IndexPath) -> Bool
     public typealias EditActionsForRowAtIndexPath = (Section, IndexPath) -> [UITableViewRowAction]?
@@ -47,7 +48,8 @@ open class TableViewSectionedDataSource<Section: SectionModelType>
                 viewForHeaderInSection: @escaping ViewForHeaderInSection = { _,_,_   in nil },
                 heightForHeaderInSection: @escaping HeightForHeaderInSection = { _,_,_   in 0 },
                 sectionForSectionIndexTitle: @escaping SectionForSectionIndexTitle = { _, _, index in index },
-                editActionsForRowAtIndexPath: @escaping EditActionsForRowAtIndexPath = { _,_  in nil }
+                editActionsForRowAtIndexPath: @escaping EditActionsForRowAtIndexPath = { _,_  in nil },
+                heightForRowAtIndexPath: @escaping HeightForRowAtIndexPath = { _, _, _ in UITableView.automaticDimension }
             ) {
             self.configureCell = configureCell
             self.titleForHeaderInSection = titleForHeaderInSection
@@ -59,6 +61,7 @@ open class TableViewSectionedDataSource<Section: SectionModelType>
             self.viewForHeaderInSection = viewForHeaderInSection
             self.heightForHeaderInSection = heightForHeaderInSection
             self.editActionsForRowAtIndexPath = editActionsForRowAtIndexPath
+            self.heightForRowAtIndexPath = heightForRowAtIndexPath
             
         }
     #else
@@ -182,6 +185,14 @@ open class TableViewSectionedDataSource<Section: SectionModelType>
         }
     }
     
+    open var heightForRowAtIndexPath: HeightForRowAtIndexPath {
+        didSet {
+            #if DEBUG
+                ensureNotMutatedAfterBinding()
+            #endif
+        }
+    }
+    
     open var canMoveRowAtIndexPath: CanMoveRowAtIndexPath {
         didSet {
             #if DEBUG
@@ -261,6 +272,10 @@ open class TableViewSectionedDataSource<Section: SectionModelType>
         precondition(indexPath.section < _sectionModels.count)
         
         return self.editActionsForRowAtIndexPath(self[indexPath.section], indexPath)
+    }
+    
+    public func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return self.heightForRowAtIndexPath(indexPath, self[indexPath.section].items[indexPath.row])
     }
 
     #if os(iOS)
