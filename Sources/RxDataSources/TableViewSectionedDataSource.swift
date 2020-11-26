@@ -49,7 +49,7 @@ open class TableViewSectionedDataSource<Section: SectionModelType>
                 heightForHeaderInSection: @escaping HeightForHeaderInSection = { _,_,_   in 0 },
                 sectionForSectionIndexTitle: @escaping SectionForSectionIndexTitle = { _, _, index in index },
                 editActionsForRowAtIndexPath: @escaping EditActionsForRowAtIndexPath = { _,_  in nil },
-                heightForRowAtIndexPath: @escaping HeightForRowAtIndexPath = { _, _, _ in UITableView.automaticDimension }
+                heightForRowAtIndexPath: @escaping HeightForRowAtIndexPath = { _, _ in UITableView.automaticDimension }
             ) {
             self.configureCell = configureCell
             self.titleForHeaderInSection = titleForHeaderInSection
